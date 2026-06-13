@@ -1,4 +1,10 @@
-import { ItemView, WorkspaceLeaf, FileSystemAdapter, Notice } from "obsidian";
+import {
+	ItemView,
+	WorkspaceLeaf,
+	FileSystemAdapter,
+	Notice,
+	setIcon,
+} from "obsidian";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import * as path from "path";
@@ -38,6 +44,14 @@ export class ClaudeTerminalView extends ItemView {
 		const container = this.contentEl;
 		container.empty();
 		container.addClass("claude-terminal-host");
+
+		const header = container.createDiv({ cls: "claude-terminal-header" });
+		const icon = header.createSpan({ cls: "claude-terminal-header-icon" });
+		setIcon(icon, "bot");
+		header.createSpan({
+			cls: "claude-terminal-header-title",
+			text: "Claude Code",
+		});
 
 		const termEl = container.createDiv({ cls: "claude-terminal" });
 

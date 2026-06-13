@@ -11,10 +11,36 @@
 	height: 100%;
 	padding: 0;
 	background-color: var(--background-primary);
+	display: flex;
+	flex-direction: column;
+}
+
+.claude-terminal-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex: 0 0 auto;
+	padding: 5px 10px;
+	border-bottom: 1px solid var(--background-modifier-border);
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	font-weight: 600;
+	user-select: none;
+}
+
+.claude-terminal-header-icon {
+	display: flex;
+	align-items: center;
+}
+
+.claude-terminal-header-icon .svg-icon {
+	width: 15px;
+	height: 15px;
 }
 
 .claude-terminal {
-	height: 100%;
+	flex: 1 1 auto;
+	min-height: 0;
 	width: 100%;
 }
 
