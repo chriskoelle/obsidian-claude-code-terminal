@@ -94,8 +94,14 @@ export class ClaudeTerminalView extends ItemView {
 		}
 
 		const cwd = this.resolveCwd();
+		// On auto-launch, exec claude directly via the login+interactive shell
+		// (-lic) so it inherits the user's PATH without the shell echoing a
+		// typed "claude" command. Otherwise open a normal interactive shell.
+		const args = settings.autoLaunch
+			? ["-l", "-i", "-c", settings.claudeCommand]
+			: ["-l"];
 		try {
-			this.ptyProc = pty.spawn(settings.shell, ["-l"], {
+			this.ptyProc = pty.spawn(settings.shell, args, {
 				name: "xterm-256color",
 				cwd,
 				env: process.env as { [key: string]: string },
@@ -112,10 +118,6 @@ export class ClaudeTerminalView extends ItemView {
 		this.ptyProc.onExit(() => {
 			this.term?.write("\r\n[process exited]\r\n");
 		});
-
-		if (settings.autoLaunch) {
-			this.ptyProc.write(settings.claudeCommand + "\r");
-		}
 
 		this.resizeObserver = new ResizeObserver(() => {
 			this.safeFit();
