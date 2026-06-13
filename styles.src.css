@@ -1,12 +1,11 @@
 /*
- * Claude Code terminal plugin styles.
+ * Claude Code terminal plugin styles (source).
  *
- * NOTE: The contents of @xterm/xterm/css/xterm.css are vendored ABOVE this
- * block by the build (see README / `npm run vendor-css`). xterm.js will not
- * render correctly without it. The rules below are plugin-specific.
+ * The build/postinstall step (`npm run vendor-css`) concatenates
+ * @xterm/xterm/css/xterm.css with this file to produce the final styles.css
+ * that Obsidian loads. xterm.js will not render correctly without its CSS.
+ * Edit this file, not styles.css.
  */
-
-/* ===== Plugin-specific styles ===== */
 
 .claude-terminal-host {
 	height: 100%;

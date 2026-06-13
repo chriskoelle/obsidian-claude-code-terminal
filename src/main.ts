@@ -74,6 +74,12 @@ export default class ClaudeCodePlugin extends Plugin {
 			"electron-rebuild",
 		);
 		const electronVersion = process.versions.electron;
+		if (!electronVersion) {
+			new Notice(
+				"Claude Code: could not determine the Electron version.",
+			);
+			return;
+		}
 
 		this.rebuilding = true;
 		new Notice(

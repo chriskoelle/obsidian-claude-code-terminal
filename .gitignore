@@ -1,9 +1,10 @@
 # Dependencies
 node_modules/
 
-# Build output (bundled at install time)
+# Build output (generated at install/build time)
 main.js
 main.js.map
+styles.css
 
 # Native modules
 *.node
