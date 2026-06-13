@@ -6,6 +6,9 @@ main.js
 main.js.map
 styles.css
 
+# Obsidian runtime plugin settings
+data.json
+
 # Native modules
 *.node
 

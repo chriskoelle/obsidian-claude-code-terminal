@@ -26,6 +26,13 @@ billing are all handled by the CLI exactly as in your normal terminal.
 - For building / rebuilding the native module: Node, npm, and a C/C++
   toolchain (Xcode Command Line Tools on macOS).
 
+## Platform support
+
+Developed and tested on macOS (Apple Silicon). It should work on Linux as well —
+the terminal launches via a POSIX login shell (`$SHELL -l -i -c`). **Windows is
+untested** and the shell launch is not adapted for `cmd`/PowerShell, so treat it
+as unsupported for now.
+
 ## Build & install
 
 ```bash

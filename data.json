@@ -1,8 +1,0 @@
-{
-  "autoLaunch": true,
-  "claudeCommand": "claude",
-  "shell": "/bin/zsh",
-  "startDir": "vault",
-  "fontSize": 13,
-  "icon": "bot"
-}
