@@ -1,0 +1,49 @@
+/*
+ * Claude Code terminal plugin styles.
+ *
+ * NOTE: The contents of @xterm/xterm/css/xterm.css are vendored ABOVE this
+ * block by the build (see README / `npm run vendor-css`). xterm.js will not
+ * render correctly without it. The rules below are plugin-specific.
+ */
+
+/* ===== Plugin-specific styles ===== */
+
+.claude-terminal-host {
+	height: 100%;
+	padding: 4px;
+	background-color: var(--background-primary);
+}
+
+.claude-terminal {
+	height: 100%;
+	width: 100%;
+}
+
+.claude-terminal .xterm {
+	height: 100%;
+}
+
+.claude-terminal-error {
+	padding: 12px 16px;
+}
+
+.claude-terminal-error h3 {
+	margin-top: 0;
+}
+
+.claude-terminal-error-note {
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+}
+
+.claude-terminal-error-details {
+	white-space: pre-wrap;
+	word-break: break-word;
+	background-color: var(--background-secondary);
+	padding: 8px;
+	border-radius: var(--radius-s);
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	max-height: 160px;
+	overflow: auto;
+}

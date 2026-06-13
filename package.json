@@ -5,8 +5,10 @@
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"rebuild": "electron-rebuild -w node-pty"
+		"build": "npm run vendor-css && tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"vendor-css": "node scripts/vendor-css.mjs",
+		"rebuild": "electron-rebuild -w node-pty",
+		"postinstall": "node scripts/vendor-css.mjs"
 	},
 	"keywords": [
 		"obsidian",
