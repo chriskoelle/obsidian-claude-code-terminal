@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Build output (bundled at install time)
+main.js
+main.js.map
+
+# Native modules
+*.node
+
+# OS / editor cruft
+.DS_Store
+*.log
+.vscode/
+.idea/

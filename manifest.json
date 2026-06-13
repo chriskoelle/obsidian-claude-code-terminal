@@ -1,0 +1,9 @@
+{
+	"id": "claude-code-terminal",
+	"name": "Claude Code",
+	"version": "0.1.0",
+	"minAppVersion": "1.5.0",
+	"description": "Embeds a Claude Code terminal in a sidebar panel, using your existing Claude subscription via the claude CLI.",
+	"author": "Chris Koelle",
+	"isDesktopOnly": true
+}

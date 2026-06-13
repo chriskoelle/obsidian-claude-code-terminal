@@ -1,0 +1,32 @@
+{
+	"name": "obsidian-claude-code-terminal",
+	"version": "0.1.0",
+	"description": "Embeds a Claude Code terminal in an Obsidian sidebar.",
+	"main": "main.js",
+	"scripts": {
+		"dev": "node esbuild.config.mjs",
+		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"rebuild": "electron-rebuild -w node-pty"
+	},
+	"keywords": [
+		"obsidian",
+		"claude",
+		"terminal"
+	],
+	"author": "Chris Koelle",
+	"license": "MIT",
+	"dependencies": {
+		"@xterm/addon-fit": "^0.10.0",
+		"@xterm/xterm": "^5.5.0",
+		"node-pty": "^1.0.0"
+	},
+	"devDependencies": {
+		"@electron/rebuild": "^3.7.0",
+		"@types/node": "^22.0.0",
+		"builtin-modules": "^4.0.0",
+		"esbuild": "^0.25.0",
+		"obsidian": "latest",
+		"tslib": "^2.8.0",
+		"typescript": "^5.6.0"
+	}
+}
