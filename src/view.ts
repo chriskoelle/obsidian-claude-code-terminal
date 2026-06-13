@@ -51,11 +51,17 @@ export class ClaudeTerminalView extends ItemView {
 		this.term.open(termEl);
 		this.safeFit();
 
-		// node-pty is a native module compiled against Obsidian's Electron ABI.
-		// Loading it can fail after an Electron upgrade — handle that gracefully.
+		// node-pty is a native module loaded at runtime. A bare
+		// require("node-pty") resolves against Electron's internals (not the
+		// plugin folder), so we require it by absolute path. This can also fail
+		// with an ABI error after an Electron upgrade — handle both gracefully.
 		let pty: typeof import("node-pty");
 		try {
-			pty = require("node-pty");
+			const pluginDir = this.plugin.getPluginDir();
+			const nodePtyPath = pluginDir
+				? path.join(pluginDir, "node_modules", "node-pty")
+				: "node-pty";
+			pty = require(nodePtyPath);
 		} catch (err) {
 			this.showLoadError(err);
 			return;
