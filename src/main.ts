@@ -1,21 +1,10 @@
 import { Plugin, WorkspaceLeaf } from "obsidian";
 import { ClaudeTerminalView, VIEW_TYPE_CLAUDE } from "./view";
-
-export interface ClaudeCodeSettings {
-	autoLaunch: boolean;
-	claudeCommand: string;
-	shell: string;
-	startDir: "vault" | "activeFile";
-	fontSize: number;
-}
-
-export const DEFAULT_SETTINGS: ClaudeCodeSettings = {
-	autoLaunch: true,
-	claudeCommand: "claude",
-	shell: process.env.SHELL || "/bin/zsh",
-	startDir: "vault",
-	fontSize: 13,
-};
+import {
+	ClaudeCodeSettings,
+	ClaudeCodeSettingTab,
+	DEFAULT_SETTINGS,
+} from "./settings";
 
 export default class ClaudeCodePlugin extends Plugin {
 	settings: ClaudeCodeSettings = DEFAULT_SETTINGS;
@@ -39,6 +28,8 @@ export default class ClaudeCodePlugin extends Plugin {
 				void this.activateView();
 			},
 		});
+
+		this.addSettingTab(new ClaudeCodeSettingTab(this.app, this));
 	}
 
 	async onunload(): Promise<void> {
