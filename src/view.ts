@@ -130,6 +130,11 @@ export class ClaudeTerminalView extends ItemView {
 		this.fitAddon = null;
 	}
 
+	/** Focus the terminal input so keystrokes go straight to Claude. */
+	focusTerminal(): void {
+		this.term?.focus();
+	}
+
 	private safeFit(): void {
 		try {
 			this.fitAddon?.fit();

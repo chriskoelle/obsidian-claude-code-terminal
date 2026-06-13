@@ -127,16 +127,20 @@ export default class ClaudeCodePlugin extends Plugin {
 	async activateView(): Promise<void> {
 		const { workspace } = this.app;
 
+		let leaf: WorkspaceLeaf | null;
 		const existing = workspace.getLeavesOfType(VIEW_TYPE_CLAUDE);
 		if (existing.length > 0) {
-			workspace.revealLeaf(existing[0]);
-			return;
+			leaf = existing[0];
+		} else {
+			leaf = workspace.getRightLeaf(false);
+			if (!leaf) return;
+			await leaf.setViewState({ type: VIEW_TYPE_CLAUDE, active: true });
 		}
 
-		const leaf: WorkspaceLeaf | null = workspace.getRightLeaf(false);
-		if (!leaf) return;
-		await leaf.setViewState({ type: VIEW_TYPE_CLAUDE, active: true });
 		workspace.revealLeaf(leaf);
+		if (leaf.view instanceof ClaudeTerminalView) {
+			leaf.view.focusTerminal();
+		}
 	}
 
 	async loadSettings(): Promise<void> {
