@@ -140,11 +140,39 @@ export class ClaudeTerminalView extends ItemView {
 	private showLoadError(err: unknown): void {
 		const msg = err instanceof Error ? err.message : String(err);
 		new Notice("Claude Code: failed to load node-pty.");
-		this.term?.write(
-			"\r\n\x1b[31mFailed to load node-pty:\x1b[0m\r\n" +
-				msg.replace(/\n/g, "\r\n") +
-				"\r\n",
-		);
+
+		// Replace the terminal with a recovery panel offering a one-click
+		// rebuild. This is the expected path after an Obsidian/Electron upgrade
+		// changes the native module ABI.
+		this.term?.dispose();
+		this.term = null;
+		this.fitAddon = null;
+		const container = this.contentEl;
+		container.empty();
+
+		const panel = container.createDiv({ cls: "claude-terminal-error" });
+		panel.createEl("h3", { text: "Claude Code can't start" });
+		panel.createEl("p", {
+			text: "The node-pty terminal backend failed to load. This usually happens after an Obsidian update changes the Electron version. Rebuilding recompiles it for the current version.",
+		});
+
+		const button = panel.createEl("button", {
+			text: "Rebuild node-pty",
+			cls: "mod-cta",
+		});
+		button.addEventListener("click", () => {
+			void this.plugin.rebuildNodePty();
+		});
+
+		panel.createEl("p", {
+			cls: "claude-terminal-error-note",
+			text: "Requires Xcode Command Line Tools. After it finishes, reopen this panel.",
+		});
+
+		const details = panel.createEl("pre", {
+			cls: "claude-terminal-error-details",
+		});
+		details.setText(msg);
 	}
 
 	private showSpawnError(err: unknown): void {
