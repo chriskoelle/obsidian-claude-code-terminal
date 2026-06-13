@@ -2,6 +2,8 @@ import { ItemView, WorkspaceLeaf, FileSystemAdapter, Notice } from "obsidian";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import * as path from "path";
+import * as os from "os";
+import * as fs from "fs";
 import type { IPty } from "node-pty";
 import type ClaudeCodePlugin from "./main";
 
@@ -113,7 +115,125 @@ export class ClaudeTerminalView extends ItemView {
 		});
 		this.resizeObserver.observe(termEl);
 
+		this.registerImageHandlers(termEl);
+
 		this.term.focus();
+	}
+
+	/**
+	 * Let users drop or paste images (e.g. a receipt) into the terminal.
+	 * Dropped files are referenced by their real path; pasted clipboard
+	 * bitmaps (which have no backing file) are staged in the OS temp dir.
+	 * The resulting path is written into Claude's prompt without submitting.
+	 */
+	private registerImageHandlers(termEl: HTMLElement): void {
+		this.registerDomEvent(termEl, "dragover", (e) => {
+			e.preventDefault();
+		});
+
+		this.registerDomEvent(termEl, "drop", (e) => {
+			const files = e.dataTransfer?.files;
+			if (!files || files.length === 0) return;
+			e.preventDefault();
+			e.stopPropagation();
+			for (const file of Array.from(files)) {
+				void this.injectFile(file);
+			}
+		});
+
+		// Capture phase so we intercept image pastes before xterm; text
+		// pastes are left untouched so normal pasting still works.
+		this.registerDomEvent(
+			termEl,
+			"paste",
+			(e) => {
+				const items = e.clipboardData?.items;
+				if (!items) return;
+				const images = Array.from(items).filter(
+					(it) =>
+						it.kind === "file" &&
+						it.type.startsWith("image/"),
+				);
+				if (images.length === 0) return;
+				e.preventDefault();
+				e.stopPropagation();
+				for (const it of images) {
+					const file = it.getAsFile();
+					if (file) void this.injectFile(file);
+				}
+			},
+			{ capture: true },
+		);
+	}
+
+	private async injectFile(file: File): Promise<void> {
+		if (!this.ptyProc) return;
+
+		let filePath = "";
+		try {
+			// Electron removed File.path; webUtils.getPathForFile replaces it.
+			const { webUtils } = require("electron");
+			filePath = webUtils.getPathForFile(file) || "";
+		} catch {
+			/* not a real file (e.g. clipboard bitmap) */
+		}
+
+		if (!filePath) {
+			try {
+				filePath = await this.writeBlobToTemp(file);
+			} catch {
+				new Notice("Claude Code: couldn't save the pasted image.");
+				return;
+			}
+		}
+
+		this.injectPath(filePath);
+	}
+
+	private async writeBlobToTemp(blob: Blob): Promise<string> {
+		const buf = Buffer.from(await blob.arrayBuffer());
+		const ext = this.extForMime(blob.type);
+		const dest = path.join(
+			os.tmpdir(),
+			`claude-paste-${this.timestamp()}.${ext}`,
+		);
+		fs.writeFileSync(dest, buf);
+		return dest;
+	}
+
+	private injectPath(filePath: string): void {
+		if (!this.ptyProc) return;
+		// Single-quote paths containing whitespace so Claude reads them whole.
+		const quoted = /\s/.test(filePath)
+			? `'${filePath.replace(/'/g, "'\\''")}'`
+			: filePath;
+		this.ptyProc.write(quoted + " ");
+		this.term?.focus();
+		new Notice("Claude Code: image path inserted.");
+	}
+
+	private extForMime(mime: string): string {
+		switch (mime) {
+			case "image/jpeg":
+				return "jpg";
+			case "image/gif":
+				return "gif";
+			case "image/webp":
+				return "webp";
+			case "image/heic":
+				return "heic";
+			default:
+				return "png";
+		}
+	}
+
+	private timestamp(): string {
+		const d = new Date();
+		const p = (n: number) => String(n).padStart(2, "0");
+		return (
+			`${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}` +
+			`-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`
+		);
 	}
 
 	async onClose(): Promise<void> {

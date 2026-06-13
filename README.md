@@ -11,6 +11,12 @@ billing are all handled by the CLI exactly as in your normal terminal.
 - Claude Code in a dockable sidebar panel (ribbon icon + command).
 - Auto-launches `claude` on open (toggleable).
 - Starts in your vault root or the active note's folder.
+- Matches your Obsidian theme; the open command focuses the prompt so you can
+  bind a hotkey and start typing without clicking.
+- Drop or paste an image (e.g. a receipt) into the panel to hand Claude its
+  path — dropped files are referenced in place; pasted screenshots are staged
+  in the OS temp dir. Ask Claude to file it into your vault if you want to keep
+  it.
 - One-click recovery if an Obsidian update breaks the native terminal backend.
 
 ## Requirements
