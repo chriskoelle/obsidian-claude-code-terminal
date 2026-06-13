@@ -47,9 +47,9 @@
 .claude-terminal .xterm {
 	height: 100%;
 	/* Left/right gutter so terminal content lines up with the header and
-	   isn't flush against the panel edge. FitAddon reads this padding and
-	   reflows the columns to fit. */
-	padding: 4px 8px;
+	   isn't flush against the panel edge, plus a little space below the
+	   header border. FitAddon reads this padding and reflows to fit. */
+	padding: 8px 8px 4px;
 }
 
 /* xterm.css hardcodes the viewport to #000; let the themed host bg show
