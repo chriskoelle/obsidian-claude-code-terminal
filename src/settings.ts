@@ -1,5 +1,23 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, PluginSettingTab, Setting, getIconIds } from "obsidian";
 import type ClaudeCodePlugin from "./main";
+
+export type ClaudeIcon = "sparkles" | "bot" | "terminal" | "asterisk";
+
+/**
+ * Resolve a setting value to an actual Lucide icon id. "terminal" maps to the
+ * square-terminal glyph, which Lucide renamed from "terminal-square" to
+ * "square-terminal" — pick whichever this Obsidian build registers.
+ */
+export function lucideIconId(icon: ClaudeIcon): string {
+	if (icon !== "terminal") return icon;
+	const ids = getIconIds();
+	for (const candidate of ["terminal-square", "square-terminal"]) {
+		if (ids.includes(candidate) || ids.includes(`lucide-${candidate}`)) {
+			return candidate;
+		}
+	}
+	return "terminal";
+}
 
 export interface ClaudeCodeSettings {
 	autoLaunch: boolean;
@@ -7,6 +25,7 @@ export interface ClaudeCodeSettings {
 	shell: string;
 	startDir: "vault" | "activeFile";
 	fontSize: number;
+	icon: ClaudeIcon;
 }
 
 export const DEFAULT_SETTINGS: ClaudeCodeSettings = {
@@ -15,6 +34,7 @@ export const DEFAULT_SETTINGS: ClaudeCodeSettings = {
 	shell: process.env.SHELL || "/bin/zsh",
 	startDir: "vault",
 	fontSize: 13,
+	icon: "bot",
 };
 
 export class ClaudeCodeSettingTab extends PluginSettingTab {
@@ -85,6 +105,23 @@ export class ClaudeCodeSettingTab extends PluginSettingTab {
 						this.plugin.settings.startDir =
 							value as ClaudeCodeSettings["startDir"];
 						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName("Icon")
+			.setDesc("Icon for the sidebar tab, ribbon, and panel header.")
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOption("sparkles", "Sparkles")
+					.addOption("bot", "Bot")
+					.addOption("terminal", "Terminal")
+					.addOption("asterisk", "Asterisk")
+					.setValue(this.plugin.settings.icon)
+					.onChange(async (value) => {
+						this.plugin.settings.icon = value as ClaudeIcon;
+						await this.plugin.saveSettings();
+						this.plugin.applyIcon();
 					}),
 			);
 

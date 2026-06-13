@@ -12,6 +12,7 @@ import * as os from "os";
 import * as fs from "fs";
 import type { IPty } from "node-pty";
 import type ClaudeCodePlugin from "./main";
+import { lucideIconId } from "./settings";
 
 export const VIEW_TYPE_CLAUDE = "claude-code-terminal";
 
@@ -21,6 +22,7 @@ export class ClaudeTerminalView extends ItemView {
 	private fitAddon: FitAddon | null = null;
 	private ptyProc: IPty | null = null;
 	private resizeObserver: ResizeObserver | null = null;
+	private headerIconEl: HTMLElement | null = null;
 
 	constructor(leaf: WorkspaceLeaf, plugin: ClaudeCodePlugin) {
 		super(leaf);
@@ -36,7 +38,17 @@ export class ClaudeTerminalView extends ItemView {
 	}
 
 	getIcon(): string {
-		return "bot";
+		return lucideIconId(this.plugin.settings.icon);
+	}
+
+	/** Re-apply the configured icon to the header and the tab. */
+	refreshIcon(): void {
+		if (this.headerIconEl) {
+			setIcon(this.headerIconEl, lucideIconId(this.plugin.settings.icon));
+		}
+		// Nudge Obsidian to re-read getIcon() for the tab header. Not in the
+		// public typings, so call it defensively.
+		(this.leaf as unknown as { updateHeader?: () => void }).updateHeader?.();
 	}
 
 	async onOpen(): Promise<void> {
@@ -46,8 +58,10 @@ export class ClaudeTerminalView extends ItemView {
 		container.addClass("claude-terminal-host");
 
 		const header = container.createDiv({ cls: "claude-terminal-header" });
-		const icon = header.createSpan({ cls: "claude-terminal-header-icon" });
-		setIcon(icon, "bot");
+		this.headerIconEl = header.createSpan({
+			cls: "claude-terminal-header-icon",
+		});
+		setIcon(this.headerIconEl, lucideIconId(this.plugin.settings.icon));
 		header.createSpan({
 			cls: "claude-terminal-header-title",
 			text: "Claude Code",

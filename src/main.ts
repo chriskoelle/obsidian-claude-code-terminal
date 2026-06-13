@@ -1,4 +1,10 @@
-import { Notice, Plugin, WorkspaceLeaf, FileSystemAdapter } from "obsidian";
+import {
+	Notice,
+	Plugin,
+	WorkspaceLeaf,
+	FileSystemAdapter,
+	setIcon,
+} from "obsidian";
 import { spawn } from "child_process";
 import * as path from "path";
 import { ClaudeTerminalView, VIEW_TYPE_CLAUDE } from "./view";
@@ -6,10 +12,12 @@ import {
 	ClaudeCodeSettings,
 	ClaudeCodeSettingTab,
 	DEFAULT_SETTINGS,
+	lucideIconId,
 } from "./settings";
 
 export default class ClaudeCodePlugin extends Plugin {
 	settings: ClaudeCodeSettings = DEFAULT_SETTINGS;
+	private ribbonIconEl: HTMLElement | null = null;
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
@@ -19,9 +27,13 @@ export default class ClaudeCodePlugin extends Plugin {
 			(leaf) => new ClaudeTerminalView(leaf, this),
 		);
 
-		this.addRibbonIcon("bot", "Open Claude Code", () => {
-			void this.activateView();
-		});
+		this.ribbonIconEl = this.addRibbonIcon(
+			lucideIconId(this.settings.icon),
+			"Open Claude Code",
+			() => {
+				void this.activateView();
+			},
+		);
 
 		this.addCommand({
 			id: "open-claude-code-terminal",
@@ -40,6 +52,20 @@ export default class ClaudeCodePlugin extends Plugin {
 		});
 
 		this.addSettingTab(new ClaudeCodeSettingTab(this.app, this));
+	}
+
+	/** Apply the configured icon to the ribbon and any open panels live. */
+	applyIcon(): void {
+		if (this.ribbonIconEl) {
+			setIcon(this.ribbonIconEl, lucideIconId(this.settings.icon));
+		}
+		for (const leaf of this.app.workspace.getLeavesOfType(
+			VIEW_TYPE_CLAUDE,
+		)) {
+			if (leaf.view instanceof ClaudeTerminalView) {
+				leaf.view.refreshIcon();
+			}
+		}
 	}
 
 	/** Absolute path to this plugin's folder inside the vault. */
