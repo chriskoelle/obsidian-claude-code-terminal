@@ -15,8 +15,8 @@ billing are all handled by the CLI exactly as in your normal terminal.
   bind a hotkey and start typing without clicking.
 - Drop or paste an image (e.g. a receipt) into the panel to hand Claude its
   path — dropped files are referenced in place; pasted screenshots are staged
-  in the OS temp dir. Ask Claude to file it into your vault if you want to keep
-  it.
+  at `/tmp/claude/paste-<time>.png` (the OS temp dir on Windows). Ask Claude to
+  file it into your vault if you want to keep it.
 - One-click recovery if an Obsidian update breaks the native terminal backend.
 
 ## Requirements

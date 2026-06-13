@@ -193,10 +193,14 @@ export class ClaudeTerminalView extends ItemView {
 	private async writeBlobToTemp(blob: Blob): Promise<string> {
 		const buf = Buffer.from(await blob.arrayBuffer());
 		const ext = this.extForMime(blob.type);
-		const dest = path.join(
-			os.tmpdir(),
-			`claude-paste-${this.timestamp()}.${ext}`,
-		);
+		// Prefer a short, namespaced /tmp/claude dir on macOS/Linux; fall back
+		// to the OS temp dir on Windows (no /tmp).
+		const dir =
+			process.platform === "win32"
+				? path.join(os.tmpdir(), "claude")
+				: "/tmp/claude";
+		fs.mkdirSync(dir, { recursive: true });
+		const dest = path.join(dir, `paste-${this.timestamp()}.${ext}`);
 		fs.writeFileSync(dest, buf);
 		return dest;
 	}
