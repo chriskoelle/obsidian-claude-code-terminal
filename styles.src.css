@@ -9,7 +9,7 @@
 
 .claude-terminal-host {
 	height: 100%;
-	padding: 4px;
+	padding: 0;
 	background-color: var(--background-primary);
 }
 
@@ -20,6 +20,13 @@
 
 .claude-terminal .xterm {
 	height: 100%;
+	padding: 0;
+}
+
+/* xterm.css hardcodes the viewport to #000; let the themed host bg show
+   through so there is no black seam at the sub-row remainder. */
+.claude-terminal .xterm-viewport {
+	background-color: transparent !important;
 }
 
 .claude-terminal-error {

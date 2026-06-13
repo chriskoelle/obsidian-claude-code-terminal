@@ -45,11 +45,21 @@ export class ClaudeTerminalView extends ItemView {
 				"Menlo, Monaco, 'Courier New', monospace",
 			cursorBlink: true,
 			allowProposedApi: true,
+			theme: this.getThemeColors(),
 		});
 		this.fitAddon = new FitAddon();
 		this.term.loadAddon(this.fitAddon);
 		this.term.open(termEl);
 		this.safeFit();
+
+		// Re-sync terminal colors when the Obsidian theme changes.
+		this.registerEvent(
+			this.app.workspace.on("css-change", () => {
+				if (this.term) {
+					this.term.options.theme = this.getThemeColors();
+				}
+			}),
+		);
 
 		// node-pty is a native module loaded at runtime. A bare
 		// require("node-pty") resolves against Electron's internals (not the
@@ -126,6 +136,31 @@ export class ClaudeTerminalView extends ItemView {
 		} catch {
 			/* container not laid out yet */
 		}
+	}
+
+	/** Map Obsidian's theme CSS variables onto an xterm color theme. */
+	private getThemeColors(): {
+		background: string;
+		foreground: string;
+		cursor: string;
+		cursorAccent: string;
+		selectionBackground: string;
+	} {
+		const styles = getComputedStyle(document.body);
+		const read = (name: string, fallback: string): string =>
+			styles.getPropertyValue(name).trim() || fallback;
+		const background = read("--background-primary", "#1e1e1e");
+		const foreground = read("--text-normal", "#dcddde");
+		return {
+			background,
+			foreground,
+			cursor: read("--text-accent", foreground),
+			cursorAccent: background,
+			selectionBackground: read(
+				"--text-selection",
+				"rgba(255, 255, 255, 0.2)",
+			),
+		};
 	}
 
 	private resolveCwd(): string {
