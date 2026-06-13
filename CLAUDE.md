@@ -16,11 +16,14 @@ environment.
 ## Layout
 
 - `src/main.ts` — `ClaudeCodePlugin`: registers the view, ribbon icon, the
-  "Open Claude Code terminal" command, the "Rebuild Claude Code terminal
-  (node-pty)" command, and the settings tab. Holds `rebuildNodePty()`.
+  "Open Claude Code terminal" command (reveals + focuses the terminal), the
+  "Rebuild Claude Code terminal (node-pty)" command, and the settings tab.
+  Holds `rebuildNodePty()`, `applyIcon()`, and `getPluginDir()`.
 - `src/view.ts` — `ClaudeTerminalView` (`ItemView`): xterm + node-pty wiring,
-  auto-launch, resize, and the node-pty load-failure recovery panel.
-- `src/settings.ts` — settings interface, defaults, and `PluginSettingTab`.
+  auto-launch, resize, theme sync, image drop/paste, in-panel header, and the
+  node-pty load-failure recovery panel.
+- `src/settings.ts` — settings interface, defaults, `PluginSettingTab`, and
+  `lucideIconId()` (maps the icon setting to a Lucide id).
 - `styles.src.css` — **edit this** for styles.
 - `scripts/vendor-css.mjs` — generates `styles.css` = `xterm.css` +
   `styles.src.css`.
@@ -53,6 +56,32 @@ npm run rebuild    # electron-rebuild -w node-pty (pass -v <electron> explicitly
   electron-rebuild via `child_process` (works even when node-pty can't load).
 - **`styles.css` is generated** — gitignored; edit `styles.src.css` instead.
 - **`main.js` is generated** — gitignored.
+- **`data.json` is Obsidian's runtime settings** — gitignored; never commit it.
+
+## Behaviors & gotchas
+
+- **Launch.** On auto-launch the view spawns `$SHELL -l -i -c <claudeCommand>`
+  so claude is exec'd directly (no echoed "claude" line) while still sourcing
+  login + interactive shell config for PATH (so `~/.local/bin` is found). With
+  auto-launch off it spawns an interactive login shell (`-l`). When claude
+  exits, the pty exits (`[process exited]`); reopen to start a new session.
+- **node-pty require.** Must be required by **absolute path**
+  (`getPluginDir()/node_modules/node-pty`), not the bare specifier — a bare
+  `require("node-pty")` resolves against Electron's internals and fails.
+- **Theme.** Terminal colors are read from Obsidian CSS vars and re-synced on
+  the workspace `css-change` event, so the panel follows theme switches live.
+- **Images.** Drop a file → its real path is inserted (via Electron
+  `webUtils.getPathForFile`). Paste a bitmap → staged at
+  `/tmp/claude/paste-<time>.png` (OS temp dir on Windows) and that path is
+  inserted. No auto-submit. Text pastes pass through to xterm untouched.
+- **Icon.** `icon` setting (bot default; sparkles/terminal/asterisk) applies to
+  ribbon/tab/header live via `applyIcon()`/`refreshIcon()`. `lucideIconId()`
+  maps `terminal` → square-terminal, handling Lucide's rename.
+
+## Platform support
+
+Developed/tested on macOS (Apple Silicon). Should work on Linux. Windows is
+untested and the shell launch is POSIX-only.
 
 ## Install into a vault
 
