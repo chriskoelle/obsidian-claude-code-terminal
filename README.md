@@ -23,8 +23,9 @@ billing are all handled by the CLI exactly as in your normal terminal.
 
 - Desktop Obsidian only (`isDesktopOnly` — node-pty is a native module).
 - The [`claude`](https://code.claude.com) CLI installed and logged in.
-- For building / rebuilding the native module: Node, npm, and a C/C++
-  toolchain (Xcode Command Line Tools on macOS).
+- Node and npm to build the plugin. A C/C++ toolchain (Xcode Command Line
+  Tools on macOS) is only needed for the optional node-pty rebuild fallback
+  below — not for a normal install.
 
 ## Platform support
 
@@ -36,21 +37,27 @@ as unsupported for now.
 ## Build & install
 
 ```bash
-npm install          # installs deps and vendors xterm.css into styles.css
-npm run rebuild      # compile node-pty for Obsidian's Electron — see note below
+npm install          # deps; vendors xterm.css into styles.css, fixes spawn-helper
 npm run build        # produce main.js
 ```
 
-`node-pty` is a native module and must be compiled against **Obsidian's**
-Electron version, not your system Node. The `rebuild` script uses
-`electron-rebuild`; pass the right Electron version with:
+That's it — `node-pty` 1.x ships ABI-stable N-API prebuilt binaries, so the
+bundled native module loads as-is across Obsidian's Electron versions. No
+compile step is needed for a normal install. (`npm install`'s postinstall also
+restores the execute bit on node-pty's prebuilt `spawn-helper`, which the
+published tarball can drop.)
+
+If the native terminal ever fails to load (e.g. an unsupported platform, or a
+future Electron that drops node-pty's N-API version), rebuild it against
+Obsidian's Electron version:
 
 ```bash
 npx electron-rebuild -v <version> -w node-pty
 ```
 
 Find `<version>` in Obsidian via the developer console (Cmd/Ctrl+Opt+I →
-`process.versions.electron`).
+`process.versions.electron`). On macOS, point the build at the SDK first:
+`export SDKROOT="$(xcrun --show-sdk-path)"`.
 
 Then make the plugin available to your vault. For development, symlink this
 folder into the vault's plugins directory (this keeps `node_modules/node-pty`
@@ -65,10 +72,11 @@ ribbon icon or the "Open Claude Code terminal" command.
 
 ## After an Obsidian update
 
-A minor Obsidian update usually keeps the same Electron version and keeps
-working. A major update can change the Electron ABI, and node-pty will fail to
-load. When that happens the panel shows a **Rebuild node-pty** button; you can
-also run the **"Rebuild Claude Code terminal (node-pty)"** command. It
+Obsidian updates normally keep working with no action needed — node-pty's N-API
+prebuilt binary is ABI-stable across Electron versions, so an Electron bump no
+longer breaks it the way it did with older, ABI-pinned native modules. In the
+rare case it does fail to load, the panel shows a **Rebuild node-pty** button;
+you can also run the **"Rebuild Claude Code terminal (node-pty)"** command. It
 recompiles node-pty against the current Electron version in the background.
 Reopen the panel when it finishes.
 
