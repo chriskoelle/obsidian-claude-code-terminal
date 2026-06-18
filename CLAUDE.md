@@ -27,15 +27,18 @@ environment.
 - `styles.src.css` — **edit this** for styles.
 - `scripts/vendor-css.mjs` — generates `styles.css` = `xterm.css` +
   `styles.src.css`.
+- `scripts/fix-pty-helper.mjs` — `chmod +x` node-pty's prebuilt spawn-helper
+  (runs from `postinstall`).
 - `esbuild.config.mjs` — bundles `src/main.ts` → `main.js` (CJS).
 
 ## Build commands
 
 ```bash
-npm install        # deps; postinstall generates styles.css
+npm install        # deps; postinstall generates styles.css + fixes spawn-helper
 npm run dev        # esbuild watch
 npm run build      # vendor-css + tsc typecheck + esbuild production → main.js
-npm run rebuild    # electron-rebuild -w node-pty (pass -v <electron> explicitly)
+npm run rebuild    # electron-rebuild -w node-pty — fallback only; N-API prebuilt
+                   # usually just works (pass -v <electron> explicitly if needed)
 ```
 
 ## Critical constraints
@@ -45,15 +48,25 @@ npm run rebuild    # electron-rebuild -w node-pty (pass -v <electron> explicitly
   installed plugin folder must therefore contain `node_modules/node-pty/`. The
   dev workflow symlinks this whole folder into the vault's plugins dir so
   `node_modules` is present.
-- **node-pty must match Obsidian's Electron ABI**, not system Node. After
-  `npm install` (or any Obsidian Electron-major upgrade), run
-  `npx electron-rebuild -v <process.versions.electron> -w node-pty`. Find the
-  version via Obsidian's dev console (`process.versions.electron`). node-pty
-  stores per-ABI binaries under `node_modules/node-pty/bin/<platform>-<abi>/`,
-  so the right one is picked at runtime.
-- **In-app recovery:** if node-pty fails to load (post-upgrade ABI mismatch),
-  the view shows a Rebuild button; `rebuildNodePty()` shells out to
-  electron-rebuild via `child_process` (works even when node-pty can't load).
+- **node-pty 1.x is N-API, so no per-Electron rebuild is normally needed.** It
+  ships ABI-stable prebuilt binaries under
+  `node_modules/node-pty/prebuilds/<platform>-<arch>/`, loaded via N-API (Node-API),
+  whose ABI is stable across Node/Electron versions. node-pty's loader
+  (`lib/utils.js`) checks `build/Release`, `build/Debug`, then the matching
+  `prebuilds/` dir — so a plain `npm install` is enough and the same binary keeps
+  working across Obsidian/Electron upgrades. The `npm run rebuild` /
+  `electron-rebuild` path remains only as a fallback for the rare case where the
+  prebuilt won't load (e.g. an Electron major that drops node-pty's N-API
+  version, or an unsupported platform). On macOS, electron-rebuild needs the SDK
+  on PATH — `export SDKROOT="$(xcrun --show-sdk-path)"` before running it.
+- **spawn-helper needs the execute bit (unix).** node-pty's prebuilt
+  `prebuilds/<platform>-<arch>/spawn-helper` can extract without `+x`, which makes
+  `pty.fork` fail with `posix_spawnp failed`. `scripts/fix-pty-helper.mjs`
+  re-`chmod +x`es every prebuilt spawn-helper; it runs from `postinstall`, so a
+  reinstall self-heals.
+- **In-app recovery:** if node-pty fails to load, the view shows a Rebuild
+  button; `rebuildNodePty()` shells out to electron-rebuild via `child_process`
+  (works even when node-pty can't load). With N-API prebuilts this is rarely hit.
 - **`styles.css` is generated** — gitignored; edit `styles.src.css` instead.
 - **`main.js` is generated** — gitignored.
 - **`data.json` is Obsidian's runtime settings** — gitignored; never commit it.

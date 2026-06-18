@@ -8,7 +8,7 @@
 		"build": "npm run vendor-css && tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
 		"vendor-css": "node scripts/vendor-css.mjs",
 		"rebuild": "electron-rebuild -w node-pty",
-		"postinstall": "node scripts/vendor-css.mjs"
+		"postinstall": "node scripts/vendor-css.mjs && node scripts/fix-pty-helper.mjs"
 	},
 	"keywords": [
 		"obsidian",
